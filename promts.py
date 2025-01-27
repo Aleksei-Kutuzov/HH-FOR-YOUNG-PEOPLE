@@ -1,0 +1,22 @@
+promts = {
+    "Программист": "Person at a desk with a laptop, coding.",
+    "Врач": "Person in a white coat with a stethoscope.",
+    "Инженер": "Person in safety gear holding blueprints.",
+    "Учитель": "Person in a classroom near a chalkboard.",
+    "Архитектор": "Person holding building plans near a model.",
+    "Юрист": "Person in a suit holding legal documents.",
+    "Финансист": "Person in a suit with charts and a laptop.",
+    "Дизайнер": "Person with a tablet or design tools.",
+    "Менеджер": "Person in business attire in an office.",
+    "Маркетолог": "Person with marketing papers at a desk.",
+    "Журналист": "Person with a microphone or camera.",
+    "Психолог": "Person in a cozy office with a notebook.",
+    "Секретарь": "Person at a desk with a phone and papers.",
+    "Операционист": "Person in a uniform at a computer.",
+    "Электрик": "Person with tools near electrical wiring.",
+    "Строитель": "Person in a hard hat at a construction site.",
+    "Водитель": "Person in uniform behind a vehicle’s wheel.",
+    "Биолог": "Person in a lab coat with samples or plants.",
+    "Химик": "Person in a lab with test tubes.",
+    "Фотограф": "Person holding a camera in a studio."
+}

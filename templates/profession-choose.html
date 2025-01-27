@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+  /* Цвет текста по умолчанию для кнопки */
+  .btn.btn-outline-secondary {
+    color: #007bff;
+  }
+
+  /* Цвет текста при наведении */
+  .btn.btn-outline-secondary:hover {
+    color: #ffffff;
+  }
+
+  /* Стили для заблокированной кнопки */
+  .btn[disabled] {
+    pointer-events: none;
+    opacity: 0.6;
+  }
+
+  /* Стили для селекта */
+  .form-select {
+    border-radius: 15px;
+    border: 1px solid #ced4da;
+    padding: 0.375rem 0.75rem;
+    font-size: 1rem;
+    color: #ffffff;
+    background: linear-gradient(to right, #AAABF9, #FF2C2C);
+    background-clip: padding-box;
+    outline: none;
+    transition: border-color 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+  }
+
+  .form-select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  }
+
+  .form-select option {
+    background: #fff;
+    color: #495057;
+  }
+
+  /* Стили для области загрузки файла */
+  .upload-area {
+    border: 2px dashed #ced4da;
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+    font-size: 1rem;
+    color: #6c757d;
+    background-color: #f8f9fa;
+    transition: background-color 0.3s ease-in-out, border-color 0.3s ease-in-out;
+    cursor: pointer;
+    min-height: 100px;
+  }
+
+  .upload-area:hover {
+    background-color: #e9ecef;
+    border-color: #007bff;
+  }
+
+  .upload-area.dragover {
+    background-color: #d4edda;
+    border-color: #28a745;
+  }
+
+  /* Стили для текста внутри области загрузки */
+  .upload-text {
+    font-weight: bold;
+    color: #495057;
+  }
+
+  /* Стили для картинки */
+  .uploaded-image {
+    max-width: 100%;
+    max-height: 200px;
+    object-fit: cover;
+    border-radius: 10px;
+  }
+
+/* Стили для крестика */
+  .close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.5); /* Полупрозрачный фон */
+    color: white;
+    border: none;
+    font-size: 1rem;
+    cursor: pointer;
+    border-radius: 50%;
+    padding: 5px;
+    z-index: 10; /* Убедимся, что крестик будет выше изображения */
+  }
+
+  /* Стили для контейнера изображения и крестика */
+  .image-container {
+    position: relative;
+    width: 100%;
+    text-align: center;
+  }
+
+  /* Стиль для скрытия области загрузки */
+  .upload-area.hidden {
+    display: none;
+  }
+
+  .image-container.hidden {
+    display: none;
+  }
+</style>
+
+{{ turbo() }}
+<div class="card" style="width: 18rem;">
+  <form method="post" action="/upload" enctype="multipart/form-data">
+    <select class="form-select" aria-label="Default select example" name="profession-option">
+      <option selected>Выбрать профессию</option>
+      {% for profession in profession_list %}
+      <option value="{{ profession }}">{{ profession }}</option>
+      {% endfor %}
+    </select>
+    <select class="form-select" aria-label="Default select example" name="region-option">
+      <option selected>Выбрать город</option>
+      <option value="Арзамас">Арзамас</option>
+      <option value="Якутия">Якутия</option>
+      <option value="Нижний">Нижний</option>
+    </select>
+
+    <!-- Область для загрузки файла -->
+    <div class="upload-area" id="uploadArea">
+      <span class="upload-text" id="uploadText">Перетащите файл сюда или нажмите, чтобы выбрать</span>
+      <input type="file" id="fileInput" name="profession-choose-file" style="display: none;" />
+    </div>
+
+    <!-- Контейнер для изображения -->
+    <div class="image-container hidden" id="imageContainer">
+      <button type="button" class="close-btn" id="closeBtn">×</button>
+      <img src="" class="uploaded-image" id="uploadedImage" alt="Загруженная картинка" />
+    </div>
+
+    <button class="btn btn-outline-secondary" type="submit" id="inputGroupFileAddon04" name="profession-choose-file-submit" {% if block_load %}onload="blockButton(this)"{% endif %}>Сгенерировать</button>
+  </form>
+  <img src="static/generates/{{ filename }}" class="card-img-top" alt="..." id="load">
+</div>
+
+<script>
+  const allowedTypes = {{ allowedTypes | tojson }}; // Множество разрешенных типов файлов из Flask
+  const uploadArea = document.getElementById("uploadArea");
+  const fileInput = document.getElementById("fileInput");
+  const uploadText = document.getElementById("uploadText");
+  const imageContainer = document.getElementById("imageContainer");
+  const uploadedImage = document.getElementById("uploadedImage");
+  const closeBtn = document.getElementById("closeBtn");
+
+  // При нажатии на область загрузки вызывается выбор файла
+  uploadArea.addEventListener("click", () => {
+    fileInput.click();
+  });
+
+  // Обработчик выбора файла через диалог
+  fileInput.addEventListener("change", () => {
+    const file = fileInput.files[0];
+    if (file && isAllowedType(file)) {
+      updateFileName(file);
+      displayImage(URL.createObjectURL(file)); // Отображаем изображение
+    } else {
+      uploadText.textContent = "Файл не является изображением или имеет неправильный формат!";
+    }
+  });
+
+  // Обработчик перетаскивания файла
+  uploadArea.addEventListener("dragover", (event) => {
+    event.preventDefault();
+    uploadArea.classList.add("dragover");
+  });
+
+  uploadArea.addEventListener("dragleave", () => {
+    uploadArea.classList.remove("dragover");
+  });
+
+  uploadArea.addEventListener("drop", (event) => {
+    event.preventDefault();
+    uploadArea.classList.remove("dragover");
+    const files = event.dataTransfer.files;
+    if (files.length) {
+      const file = files[0];
+      if (isAllowedType(file)) {
+        fileInput.files = files; // Привязка файла к input
+        updateFileName(file);
+        displayImage(URL.createObjectURL(file)); // Отображаем изображение
+      } else {
+        uploadText.textContent = "Файл не является изображением или имеет неправильный формат!";
+      }
+    }
+  });
+
+  // Проверка, является ли файл разрешенным типом
+  function isAllowedType(file) {
+    const fileExtension = file.name.split('.').pop().toLowerCase();
+    return allowedTypes.includes(fileExtension); // Проверка через includes для массива
+  }
+
+  // Обновление текста с именем файла и отображение изображения
+  function updateFileName(file) {
+    if (file) {
+      uploadText.textContent = `Выбран файл: ${file.name}`;
+    }
+  }
+
+  // Отображение изображения
+  function displayImage(fileUrl) {
+    uploadedImage.src = fileUrl;
+    imageContainer.classList.remove("hidden"); // Показываем контейнер с изображением
+    uploadArea.classList.add("hidden"); // Скрываем область загрузки
+  }
+
+  // Закрытие изображения
+  closeBtn.addEventListener("click", () => {
+    imageContainer.classList.add("hidden");
+    uploadArea.classList.remove("hidden");
+    uploadText.textContent = "Перетащите файл сюда или нажмите, чтобы выбрать"; // Сбрасываем текст
+  });
+
+  function blockButton(button) {
+    button.disabled = true; // Блокируем кнопку
+    button.innerText = 'Обработка...'; // Изменяем текст кнопки
+  }
+</script>
+
+{% endblock %}
